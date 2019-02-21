@@ -34,12 +34,31 @@ class AddNewBook extends Component {
     console.log(this);
   }
 
+  handleRadioChange(event){
+    let element = document.getElementById("price");
+    if(event.target.id === "wishlist"){
+      element.classList.remove("hidden");
+    } else if(event.target.id === "myBooks"){
+      element.classList.add("hidden");
+    }
+  }
+
   handleAdd(event){
     let book = this.state;
-    axios.post(`http://localhost:8080/books`,book)
-    .then(res => {
-      console.log(res);
-    });
+    console.log(book.priceInUSD);
+    if(book.priceInUSD !== ""){
+      console.log("Im here");
+      axios.post(`http://localhost:8080/books/wishlist`,book)
+      .then(res => {
+        console.log(res);
+      });
+    } else {
+      console.log("Im not here");
+      axios.post(`http://localhost:8080/books`,book)
+      .then(res => {
+        console.log(res);
+      });
+    }
     
   }
 
@@ -70,10 +89,96 @@ class AddNewBook extends Component {
           <label htmlFor="yearOfPublishing">Year</label>
           <input onChange={this.handleFormChange} value={this.state.yearOfPublishing} type="text" className="form-control" id="yearOfPublishing" placeholder="Year of publishing" required></input>
         </div>
+        <div className="form-group col-md-6 addForm hidden" id="price">
+          <label htmlFor="priceInUSD">Price</label>
+          <input onChange={this.handleFormChange} value={this.state.priceInUSD} type="text" className="form-control" id="priceInUSD" placeholder="Price of book (USD)" required></input>
+        </div>
+        <div className="form-group col-md-6 addForm">
+          <label htmlFor="wishlist">Wishlist</label>
+          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="wishlist" name="wishlistOrMyBooks" value="wishlist"></input>
+          <label htmlFor="myBooks">MyBooks</label>
+          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="myBooks" name="wishlistOrMyBooks" value="myBooks"></input>
+        </div>
         <div className="col-md-6 addForm">
           <button id="addButton" type="submit" className="btn btn-primary">Add</button>
         </div>
       </form>
+    );
+  }
+}
+
+class Wishlist extends Component {
+  constructor(props){
+    super(props);
+    this.state={
+      books: []
+    }
+
+    this.handleDelete = this.handleDelete.bind(this);
+  }
+
+  componentDidMount() {
+    axios.get(`http://localhost:8080/books/wishlist`)
+      .then(res => {
+        const books = res.data;
+        this.setState({ books });
+      });
+
+  }
+
+  componentDidUpdate() {
+    axios.get(`http://localhost:8080/books/wishlist`)
+      .then(res => {
+        const books = res.data;
+        this.setState({ books });
+      });
+
+  }
+
+  handleDelete(event){
+    if(window.confirm("Are u sure?")){
+      const index = event.target.id;
+      let url = "http://localhost:8080/books/" + index;
+      console.log(url);
+      axios.delete(url);
+    }
+  }
+  
+  render() {
+    return (
+      <div className="container">
+        <div>
+          <h1 className="header">My Books</h1>
+        </div>
+        <table className="table table-sm">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Authors</th>
+              <th>Category</th>
+              <th>Pages</th>
+              <th>Read</th>
+              <th>Year</th>
+              <th>Price</th>
+              <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {this.state.books.map(book =>
+          <tr key={book.id}>
+            <td>{book.title}</td>
+            <td>{book.authors}</td>
+            <td>{book.category}</td>
+            <td>{book.numberOfPages}</td>
+            <td>{book.readPages}/{book.numberOfPages}</td>
+            <td>{book.yearOfPublishing}</td>
+            <td>{book.priceInUSD}$</td>
+            <td><button onClick={this.handleDelete} className="btn btn-outline-secondary" id={book.id}><FontAwesomeIcon icon={faMinus}/></button></td>
+          </tr>
+        )}
+        </tbody>
+        </table>
+      </div>
     );
   }
 }
@@ -87,10 +192,6 @@ class MyBooks extends Component {
     }
 
     this.handleDelete = this.handleDelete.bind(this);
-  }
-
-  getBook(index){
-    return this.state.books[index];
   }
 
   componentDidMount() {
@@ -154,8 +255,6 @@ class MyBooks extends Component {
         )}
         </tbody>
         </table>
-        
-        
       </div>
     );
   }
@@ -188,6 +287,9 @@ class App extends Component {
             
               <Route exact={true} path={"/"} render={() => (
                 <div className="container booklist"><MyBooks /></div>
+              )}/>
+              <Route exact={true} path={"/wishlist"} render={() => (
+                <div className="container booklist"><Wishlist /></div>
               )}/>
               <Route exact={true} path={"/add"} component={AddNewBook} />
             </div>

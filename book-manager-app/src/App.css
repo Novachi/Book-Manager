@@ -73,6 +73,15 @@ nav#navigation {
   
 }
 
+.hidden {
+  display: none;
+}
+
+input#wishlist:focus{
+  outline-color: transparent;
+}
+
+
 body, html{
   background-image: linear-gradient(rgba(90, 90, 81, 0.397),rgba(52, 74, 102, 0.336));
   background-repeat: no-repeat;
