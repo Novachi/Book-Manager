@@ -148,7 +148,7 @@ class Wishlist extends Component {
     return (
       <div className="container">
         <div>
-          <h1 className="header">My Books</h1>
+          <h1 className="header">Wishlist</h1>
         </div>
         <table className="table table-sm">
           <thead>
