@@ -13,9 +13,9 @@ class AddNewBook extends Component {
         title: "",
         authors: "",
         category: "",
-        numberOfPages: 321,
-        readPages: 4342,
-        yearOfPublishing: 423,
+        numberOfPages: "",
+        readPages: "",
+        yearOfPublishing: "",
     }
 
     this.handleFormChange = this.handleFormChange.bind(this);
@@ -25,7 +25,11 @@ class AddNewBook extends Component {
   //Add handlers for forms to read its values and send those on submit
   handleFormChange(event){
     let val = {};
-    val[event.target.id] = event.target.value;
+    if(event.target.value.match("/^d+$/g")){
+      val[event.target.id] = parseInt(event.target.value);
+    } else {
+      val[event.target.id] = event.target.value;
+    }
     this.setState(val);
     console.log(this);
   }
@@ -35,7 +39,6 @@ class AddNewBook extends Component {
     axios.post(`http://localhost:8080/books`,book)
     .then(res => {
       console.log(res);
-      console.log(book);
     });
     
   }
@@ -57,15 +60,15 @@ class AddNewBook extends Component {
         </div>
         <div className="form-group col-md-6 addForm">
           <label htmlFor="numberOfPages">Pages</label>
-          <input onChange={this.handleFormChange} value={parseInt(this.state.numberOfPages)} type="text" className="form-control" id="numberOfPages" placeholder="Number of pages of the book" required></input>
+          <input onChange={this.handleFormChange} value={this.state.numberOfPages} type="text" className="form-control" id="numberOfPages" placeholder="Number of pages of the book" required></input>
         </div>
         <div className="form-group col-md-6 addForm">
           <label htmlFor="readPages">Read</label>
-          <input onChange={this.handleFormChange} value={parseInt(this.state.readPages)} type="text" className="form-control" id="readPages" placeholder="Number of pages already read" required></input>
+          <input onChange={this.handleFormChange} value={this.state.readPages} type="text" className="form-control" id="readPages" placeholder="Number of pages already read" required></input>
         </div>
         <div className="form-group col-md-6 addForm">
           <label htmlFor="yearOfPublishing">Year</label>
-          <input onChange={this.handleFormChange} value={parseInt(this.state.yearOfPublishing)} type="text" className="form-control" id="yearOfPublishing" placeholder="Year of publishing" required></input>
+          <input onChange={this.handleFormChange} value={this.state.yearOfPublishing} type="text" className="form-control" id="yearOfPublishing" placeholder="Year of publishing" required></input>
         </div>
         <div className="col-md-6 addForm">
           <button id="addButton" type="submit" className="btn btn-primary">Add</button>
@@ -99,9 +102,22 @@ class MyBooks extends Component {
 
   }
 
+  componentDidUpdate() {
+    axios.get(`http://localhost:8080/books`)
+      .then(res => {
+        const books = res.data;
+        this.setState({ books });
+      });
+
+  }
+
   handleDelete(event){
-    const index = event.target.id;
-    console.log(index);
+    if(window.confirm("Are u sure?")){
+      const index = event.target.id;
+      let url = "http://localhost:8080/books/" + index;
+      console.log(url);
+      axios.delete(url);
+    }
   }
 
 
@@ -133,7 +149,7 @@ class MyBooks extends Component {
             <td>{book.numberOfPages}</td>
             <td>{book.readPages}/{book.numberOfPages}</td>
             <td>{book.yearOfPublishing}</td>
-            <td><button onClick={this.handleDelete} className="btn btn-outline-secondary" id={book.id - 1}><FontAwesomeIcon icon={faMinus}/></button></td>
+            <td><button onClick={this.handleDelete} className="btn btn-outline-secondary" id={book.id}><FontAwesomeIcon icon={faMinus}/></button></td>
           </tr>
         )}
         </tbody>
