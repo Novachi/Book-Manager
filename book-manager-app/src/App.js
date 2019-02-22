@@ -45,8 +45,8 @@ class AddNewBook extends Component {
 
   handleAdd(event){
     let book = this.state;
-    console.log(book.priceInUSD);
-    if(book.priceInUSD !== ""){
+    let toMyBooks = document.querySelector("#myBooks").checked;
+    if(!toMyBooks){
       console.log("Im here");
       axios.post(`http://localhost:8080/books/wishlist`,book)
       .then(res => {
@@ -91,13 +91,13 @@ class AddNewBook extends Component {
         </div>
         <div className="form-group col-md-6 addForm hidden" id="price">
           <label htmlFor="priceInUSD">Price</label>
-          <input onChange={this.handleFormChange} value={this.state.priceInUSD} type="text" className="form-control" id="priceInUSD" placeholder="Price of book (USD)" required></input>
+          <input onChange={this.handleFormChange} type="text" className="form-control" id="priceInUSD" placeholder="Price of book (USD)"></input>
         </div>
         <div className="form-group col-md-6 addForm">
           <label htmlFor="wishlist">Wishlist</label>
-          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="wishlist" name="wishlistOrMyBooks" value="wishlist"></input>
+          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="wishlist" name="wishlistOrMyBooks" value="wishlist" required></input>
           <label htmlFor="myBooks">MyBooks</label>
-          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="myBooks" name="wishlistOrMyBooks" value="myBooks"></input>
+          <input onChange={this.handleRadioChange} type="radio" className="form-control" id="myBooks" name="wishlistOrMyBooks" value="myBooks" required></input>
         </div>
         <div className="col-md-6 addForm">
           <button id="addButton" type="submit" className="btn btn-primary">Add</button>
@@ -200,7 +200,6 @@ class MyBooks extends Component {
         const books = res.data;
         this.setState({ books });
       });
-
   }
 
   componentDidUpdate() {
@@ -261,6 +260,34 @@ class MyBooks extends Component {
 }
 
 class App extends Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      search: "",
+      books: [],
+    }
+
+    this.handleSearch = this.handleSearch.bind(this);
+    this.handleFormChange = this.handleFormChange.bind(this);
+  }
+
+  handleFormChange(event){
+    let val = {};
+    val[event.target.id] = event.target.value;
+    this.setState(val);
+  }
+
+  handleSearch(){
+    let title = document.querySelector("#search").value;
+    console.log(title);
+    let url = `http://localhost:8080/books/` + title;
+    axios.get(url)
+      .then(res => {
+        const books = res.data;
+        console.log(books);
+        this.setState({ books });
+      });
+  }
   
 
   render() {
@@ -278,15 +305,15 @@ class App extends Component {
                     <Link className="nav-item nav-link active" to={"/wishlist"}>Whishlist</Link>
                     <Link className="nav-item nav-link active" to={"/add"}>Add New Book</Link>
                   </div>
-                  <form className="form-inline my-2 my-lg-0">
-                    <input className="form-control mr-sm-2" type="search" placeholder="Title" aria-label="Search"></input>
+                  <form onSubmit={this.handleSearch} className="form-inline my-2 my-lg-0">
+                    <input onChange={this.handleFormChange} className="form-control mr-sm-2" type="search" placeholder="Title" aria-label="Search" id="search"></input>
                     <button id="searchButton" className="btn btn-outline-secondary my-2 my-sm-0" type="submit">Search</button>
                   </form>
                 </div>
               </nav>
             
               <Route exact={true} path={"/"} render={() => (
-                <div className="container booklist"><MyBooks /></div>
+                <div className="container booklist"><MyBooks books={this.state.books}/></div>
               )}/>
               <Route exact={true} path={"/wishlist"} render={() => (
                 <div className="container booklist"><Wishlist /></div>
